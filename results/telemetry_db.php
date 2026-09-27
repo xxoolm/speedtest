@@ -15,7 +15,7 @@ function getPdo($returnErrorMessage = false)
     ) {
 		if($returnErrorMessage){
 			return 'missing TELEMETRY_SETTINGS_FILE';
-		} 
+		}
         return false;
     }
 
@@ -24,7 +24,7 @@ function getPdo($returnErrorMessage = false)
     if (!isset($db_type)) {
 		if($returnErrorMessage){
 			return "db_type not set in '" . TELEMETRY_SETTINGS_FILE . "'";
-		} 
+		}
         return false;
     }
 
@@ -41,19 +41,19 @@ function getPdo($returnErrorMessage = false)
             )) {
 				if($returnErrorMessage){
 					return "Required MSSQL database settings missing in '" . TELEMETRY_SETTINGS_FILE . "'";
-				} 
+				}
                 return false;
             }
 			
 			if (!$MsSql_WindowsAuthentication and
 			    !isset(
 						$MsSql_username,
-						$MsSql_password,
+						$MsSql_password
 						)
 				) {
 				if($returnErrorMessage){
 					return "Required MSSQL database settings missing in '" . TELEMETRY_SETTINGS_FILE . "'";
-				} 
+				}
                 return false;
             }
             $dsn = 'sqlsrv:'
@@ -70,7 +70,7 @@ function getPdo($returnErrorMessage = false)
 			if($MsSql_WindowsAuthentication){
 				return new PDO($dsn, "", "", $pdoOptions);
 			} else {
-				return new PDO($dsn, $MySql_username, $MySql_password, $pdoOptions);
+				return new PDO($dsn, $MsSql_username, $MsSql_password, $pdoOptions);
 			}
         }
 
@@ -84,7 +84,7 @@ function getPdo($returnErrorMessage = false)
             )) {
                 if($returnErrorMessage){
 					return "Required mysql database settings missing in '" . TELEMETRY_SETTINGS_FILE . "'";
-				} 
+				}
 				return false;
             }
 
@@ -100,26 +100,42 @@ function getPdo($returnErrorMessage = false)
             if (!isset($Sqlite_db_file)) {
 				if($returnErrorMessage){
 					return "Required sqlite database settings missing in '" . TELEMETRY_SETTINGS_FILE . "'";
-				} 
+				}
                 return false;
             }
 
+			// Check if directory exists and is writable
+			$db_dir = dirname($Sqlite_db_file);
+			if (!is_dir($db_dir)) {
+				if ($returnErrorMessage) {
+					return "SQLite database directory does not exist: " . $db_dir . ". Please create it and ensure it's writable by the web server.";
+				}
+				return false;
+			}
+			if (!is_writable($db_dir)) {
+				if ($returnErrorMessage) {
+					return "SQLite database directory is not writable: " . $db_dir . ". Please ensure the web server has write permissions (e.g., chmod 755 or 775).";
+				}
+				return false;
+			}
+
             $pdo = new PDO('sqlite:'.$Sqlite_db_file, null, null, $pdoOptions);
 
+            # TODO: Why create table only in sqlite mode?
             $pdo->exec('
                 CREATE TABLE IF NOT EXISTS `speedtest_users` (
-                `id`    INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
-                `ispinfo`    text,
-                `extra`    text,
-                `timestamp`     timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
-                `ip`    text NOT NULL,
-                `ua`    text NOT NULL,
-                `lang`  text NOT NULL,
-                `dl`    text,
-                `ul`    text,
-                `ping`  text,
-                `jitter`        text,
-                `log`   longtext
+                `id`        INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+                `ispinfo`   text,
+                `extra`     text,
+                `timestamp` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                `ip`        text NOT NULL,
+                `ua`        text NOT NULL,
+                `lang`      text NOT NULL,
+                `dl`        text,
+                `ul`        text,
+                `ping`      text,
+                `jitter`    text,
+                `log`       longtext
                 );
             ');
 
@@ -135,7 +151,7 @@ function getPdo($returnErrorMessage = false)
             )) {
                 if($returnErrorMessage){
 					return "Required postgresql database settings missing in '" . TELEMETRY_SETTINGS_FILE . "'";
-				} 
+				}
 				return false;
             }
 
@@ -148,13 +164,13 @@ function getPdo($returnErrorMessage = false)
     } catch (Exception $e) {
 		if($returnErrorMessage){
 			return $e->getMessage();
-		} 
+		}
         return false;
     }
 
 	if($returnErrorMessage){
 		return "db_type '" . $db_type . "' not supported";
-	} 
+	}
     return false;
 }
 
@@ -179,7 +195,7 @@ function insertSpeedtestUser($ip, $ispinfo, $extra, $ua, $lang, $dl, $ul, $ping,
     if (!($pdo instanceof PDO)) {
 		if($returnExceptionOnError){
 			return new Exception("Failed to get database connection object");
-		} 
+		}
         return false;
     }
 
@@ -196,7 +212,7 @@ function insertSpeedtestUser($ip, $ispinfo, $extra, $ua, $lang, $dl, $ul, $ping,
     } catch (Exception $e) {
 		if($returnExceptionOnError){
 			return $e;
-		} 
+		}
         return false;
     }
 
@@ -222,7 +238,7 @@ function getSpeedtestUserById($id,$returnExceptionOnError = false)
     if (!($pdo instanceof PDO)) {
 		if($returnExceptionOnError){
 			return new Exception("Failed to get database connection object");
-		} 
+		}
         return false;
     }
 
@@ -243,7 +259,7 @@ function getSpeedtestUserById($id,$returnExceptionOnError = false)
     } catch (Exception $e) {
 		if($returnExceptionOnError){
 			return $e;
-		} 
+		}
         return false;
     }
 

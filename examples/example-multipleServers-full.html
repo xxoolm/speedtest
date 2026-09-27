@@ -126,11 +126,13 @@ function startStop(){
 		s.abort();
 		data=null;
 		I("startStopBtn").className="";
+		I("startStopBtn").setAttribute("aria-label","Start");
 		I("server").disabled=false;
 		initUI();
 	}else{
 		//test is not running, begin
 		I("startStopBtn").className="running";
+		I("startStopBtn").setAttribute("aria-label","Abort");
 		I("shareArea").style.display="none";
 		I("server").disabled=true;
 		s.onupdate=function(data){
@@ -138,6 +140,7 @@ function startStop(){
 		};
 		s.onend=function(aborted){
             I("startStopBtn").className="";
+            I("startStopBtn").setAttribute("aria-label","Start");
             I("server").disabled=false;
             updateUI(true);
             if(!aborted){
@@ -147,6 +150,7 @@ function startStop(){
                     if(testId!=null){
                         var shareURL=window.location.href.substring(0,window.location.href.lastIndexOf("/"))+"/results/?id="+testId;
                         I("resultsImg").src=shareURL;
+                        I("resultsImg").alt="Download: "+uiData.dlStatus+" Mbps, Upload: "+uiData.ulStatus+" Mbps, Ping: "+uiData.pingStatus+" ms, Jitter: "+uiData.jitterStatus+" ms";
                         I("resultsURL").value=shareURL;
                         I("testId").innerHTML=testId;
                         I("shareArea").style.display="";
@@ -229,6 +233,8 @@ function initUI(){
 		color:#6060AA;
 		background-color:rgba(0,0,0,0);
 		border:0.15em solid #6060FF;
+		padding:0;
+		font:inherit;
 		border-radius:0.3em;
 		transition:all 0.3s;
 		box-sizing:border-box;
@@ -401,7 +407,7 @@ function initUI(){
 	<p id="message"><span class="loadCircle"></span>Selecting a server...</p>
 </div>
 <div id="testWrapper" class="hidden">
-	<div id="startStopBtn" onclick="startStop()"></div><br/>
+	<button id="startStopBtn" onclick="startStop()" aria-label="Start"></button><br/>
 	<a class="privacy" href="#" onclick="I('privacyPolicy').style.display=''">Privacy</a>
 	<div id="serverArea">
 		Server: <select id="server" onchange="s.setSelectedServer(SPEEDTEST_SERVERS[this.value])"></select>
@@ -424,13 +430,13 @@ function initUI(){
 				<div class="testName">Download</div>
 				<canvas id="dlMeter" class="meter"></canvas>
 				<div id="dlText" class="meterText"></div>
-				<div class="unit">Mbps</div>
+				<div class="unit">Mbit/s</div>
 			</div>
 			<div class="testArea">
 				<div class="testName">Upload</div>
 				<canvas id="ulMeter" class="meter"></canvas>
 				<div id="ulText" class="meterText"></div>
-				<div class="unit">Mbps</div>
+				<div class="unit">Mbit/s</div>
 			</div>
 		</div>
 		<div id="ipArea">
